@@ -7,8 +7,8 @@ from sklearn.preprocessing import LabelEncoder
 
 app = Flask(__name__)
 
-regressor = joblib.load("/content/drive/MyDrive/Colab Notebooks/DATA6545/allstate_project/models/lgbm_regressor.joblib")
-classifier = joblib.load("/content/drive/MyDrive/Colab Notebooks/DATA6545/allstate_project/models/lgbm_classifier.joblib")
+regressor = joblib.load("./models/lgbm_regressor.joblib")
+classifier = joblib.load("./models/lgbm_classifier.joblib")
 
 HIGH_SEVERITY_THRESHOLD = 6401.74
 
