@@ -1,0 +1,14 @@
+# render.yaml — Render.com deployment configuration
+# Docs: https://render.com/docs/render-yaml-reference
+
+services:
+  - type: web
+    name: allstate-severity-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app
+    envVars:
+      - key: MODEL_DIR
+        value: ./models
+    healthCheckPath: /health
+    autoDeploy: true
