@@ -67,19 +67,20 @@ curl -X POST https://allstate-severity-api.onrender.com/predict_batch \
 ```
 allstate-severity-api/
 ├── notebooks/
-│   ├── notebook_1_eda_baselines.ipynb     # EDA, Ridge Regression, Random Forest, cross-validation
-│   └── notebook_2_lgbm_shap_api.ipynb     # LightGBM, SHAP, error analysis, MLflow, API
+│   ├── Group_7_Connor_Hernon_Final_Project_Part_1_CV_Results.ipynb
+│   └── Group_7_Connor_Hernon_Part_2_Final_Project.ipynb
 ├── models/
-│   ├── lgbm_regressor.joblib              # Trained LightGBM regressor
-│   ├── lgbm_classifier.joblib             # Trained LightGBM high-severity classifier
-│   ├── label_encoders.joblib              # Fitted LabelEncoder objects for all 116 categorical features
-│   └── metadata.joblib                    # Feature lists, tier boundaries, validation metrics
-├── app.py                                 # Flask REST API
-├── train_model.py                         # Standalone training and artifact generation script
-├── requirements.txt                       # Pinned Python dependencies
-├── Dockerfile                             # Container definition for reproducible deployment
-├── render.yaml                            # Render deployment configuration
-└── mlflow_run_summary.csv                 # Exported MLflow experiment results
+│   ├── lgbm_regressor.joblib
+│   ├── lgbm_classifier.joblib
+│   ├── label_encoders.joblib
+│   └── metadata.joblib
+├── app.py
+├── train_model.py
+├── claims_dashboard.html
+├── mlflow_run_summary.csv
+├── requirements.txt
+├── Dockerfile
+└── render.yaml
 ```
 
 ---
