@@ -1,34 +1,29 @@
-# Allstate Claims Severity — Prediction API
+# Allstate Claims Severity — Insurance Loss Prediction API
 
-**DATA 6545 Final Project | Spring 2026 | Connor Hernon**
+**DATA 6545: Data Science and MLOps | Spring 2026 | Connor Hernon**
 
-A production-grade machine learning system that predicts the financial severity of insurance claims using the [Allstate Claims Severity](https://www.kaggle.com/c/allstate-claims-severity) dataset. The system provides a REST API for scoring new claims with predicted dollar loss, severity tier, and high-severity risk flag.
+A production-grade machine learning system that predicts the financial severity of insurance claims using the [Allstate Claims Severity](https://www.kaggle.com/c/allstate-claims-severity) dataset. The system exposes a REST API for scoring new claims with a predicted dollar loss, severity tier classification, and a high-severity risk flag for triage prioritization.
 
 ---
 
 ## Live API
 
-> Base URL: `https://allstate-severity-api.onrender.com`
+> **Base URL:** `https://allstate-severity-api.onrender.com`
 
-| Method | Endpoint         | Description                          |
-|--------|-----------------|--------------------------------------|
-| GET    | `/health`        | Liveness check                       |
-| GET    | `/model_info`    | Model metadata and performance       |
-| POST   | `/predict`       | Single claim prediction              |
-| POST   | `/predict_batch` | Batch claim predictions (max 500)    |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Liveness check — confirms the service is running |
+| GET | `/model_info` | Model metadata, feature counts, tier boundaries, and validation metrics |
+| POST | `/predict` | Score a single claim and return predicted loss + severity tier |
+| POST | `/predict_batch` | Score up to 500 claims in one request |
 
-### Example Request
+### Example: Single Prediction
 
 ```bash
 curl -X POST https://allstate-severity-api.onrender.com/predict \
   -H "Content-Type: application/json" \
-  -d '{
-    "cat1": "A", "cat2": "B", "cat80": "D",
-    "cont1": 0.72, "cont14": 0.71
-  }'
+  -d '{"cat1": "A", "cat80": "D", "cont1": 0.72, "cont14": 0.71}'
 ```
-
-### Example Response
 
 ```json
 {
@@ -40,77 +35,97 @@ curl -X POST https://allstate-severity-api.onrender.com/predict \
 }
 ```
 
+Partial payloads are supported — any features not provided default to safe values. The `warnings` field surfaces any input values that fall outside the expected range.
+
+### Example: Batch Prediction
+
+```bash
+curl -X POST https://allstate-severity-api.onrender.com/predict_batch \
+  -H "Content-Type: application/json" \
+  -d '{
+    "claims": [
+      {"cat1": "A", "cat80": "D", "cont14": 0.71},
+      {"cat1": "B", "cat80": "A", "cont14": 0.25}
+    ]
+  }'
+```
+
+```json
+{
+  "total_claims": 2,
+  "predictions": [
+    {"index": 0, "predicted_loss": 2847.35, "severity_tier": "Moderate", "high_severity_flag": false, "high_severity_probability": 0.0821, "warnings": []},
+    {"index": 1, "predicted_loss": 7104.18, "severity_tier": "Extreme",  "high_severity_flag": true,  "high_severity_probability": 0.8143, "warnings": []}
+  ]
+}
+```
+
 ---
 
 ## Project Structure
 
 ```
-allstate_project/
-├── data/
-│   ├── raw/                  # train.csv, test.csv (not committed)
-│   └── processed/            # test_predictions.csv
-├── models/
-│   ├── lgbm_regressor.joblib
-│   ├── lgbm_classifier.joblib
-│   ├── label_encoders.joblib
-│   └── metadata.joblib
+allstate-severity-api/
 ├── notebooks/
-│   ├── notebook_1.ipynb      # EDA, preprocessing, Ridge, Random Forest
-│   └── notebook_2.ipynb      # LightGBM, CV, SHAP, error analysis
-├── figures/
-│   ├── shap_summary_dot.png
-│   ├── shap_summary_bar.png
-│   └── ...
-├── app.py                    # Flask API
-├── train_model.py            # Model training script
-├── requirements.txt
-├── Dockerfile
-├── render.yaml
-└── README.md
+│   ├── notebook_1_eda_baselines.ipynb     # EDA, Ridge Regression, Random Forest, cross-validation
+│   └── notebook_2_lgbm_shap_api.ipynb     # LightGBM, SHAP, error analysis, MLflow, API
+├── models/
+│   ├── lgbm_regressor.joblib              # Trained LightGBM regressor
+│   ├── lgbm_classifier.joblib             # Trained LightGBM high-severity classifier
+│   ├── label_encoders.joblib              # Fitted LabelEncoder objects for all 116 categorical features
+│   └── metadata.joblib                    # Feature lists, tier boundaries, validation metrics
+├── app.py                                 # Flask REST API
+├── train_model.py                         # Standalone training and artifact generation script
+├── requirements.txt                       # Pinned Python dependencies
+├── Dockerfile                             # Container definition for reproducible deployment
+├── render.yaml                            # Render deployment configuration
+└── mlflow_run_summary.csv                 # Exported MLflow experiment results
 ```
 
 ---
 
 ## Model Performance
 
-### Regression (Primary Task — Predict Loss in USD)
+Trained on the Allstate Claims Severity dataset (188,318 training rows, 130 features).
 
-| Model            | MAE        | RMSE       | R²     |
-|-----------------|-----------|-----------|--------|
-| Ridge Regression | $1,244.68 | $2,185.06 | 0.4149 |
-| Random Forest    | $1,223.44 | $2,055.23 | 0.4823 |
-| **LightGBM**     | **$1,135.16** | **$1,895.83** | **0.5595** |
+### Regression — Predict Claim Loss in USD
 
-5-fold cross-validation: Mean MAE **$1,145.91** ± $7.95 (stable, no overfitting)
+| Model | MAE | RMSE | R² |
+|-------|-----|------|----|
+| Ridge Regression (baseline) | $1,244.68 | $2,185.06 | 0.4149 |
+| Random Forest | $1,223.44 | $2,055.23 | 0.4823 |
+| **LightGBM (final)** | **$1,135.16** | **$1,895.83** | **0.5595** |
 
-### Classification (Secondary Task — Flag High-Severity Claims)
+5-fold cross-validation on LightGBM: **Mean MAE $1,145.91 ± $7.95** — stable across all folds with no evidence of overfitting.
 
-High-severity threshold: **$6,401.74** (top 10% of training loss distribution)
+### Classification — Flag High-Severity Claims
 
-| Metric              | Value  |
-|--------------------|--------|
-| AUC-ROC             | 0.9315 |
-| Precision (High)    | 0.72   |
-| Recall (High)       | 0.47   |
-| F1 (High)           | 0.57   |
+High-severity threshold: **$6,401.74** (90th percentile of training loss distribution)
 
-### Severity Tier Distribution (Test Set)
+| Metric | Value |
+|--------|-------|
+| AUC-ROC | 0.9315 |
+| Precision (high severity) | 0.72 |
+| Recall (high severity) | 0.47 |
+| F1 (high severity) | 0.57 |
 
-| Tier     | Claims  | % of Total |
-|---------|---------|-----------|
-| Low      | 9,784   | 7.8%      |
-| Moderate | 80,756  | 64.3%     |
-| High     | 28,049  | 22.4%     |
-| Extreme  | 6,957   | 5.5%      |
+### Severity Tier Distribution (125,546 Test Claims)
+
+| Tier | Loss Range | Claims | % of Total |
+|------|------------|--------|------------|
+| Low | < $1,000 | 9,784 | 7.8% |
+| Moderate | $1,000–$3,000 | 80,756 | 64.3% |
+| High | $3,000–$6,401 | 28,049 | 22.4% |
+| Extreme | > $6,401 | 6,957 | 5.5% |
 
 ---
 
 ## Key Findings
 
-- **cat80** is the single most predictive feature by a significant margin (SHAP analysis)
-- **cont14** shows a highly nonlinear relationship with loss — explaining why linear models underperform
-- The model performs well on Low and Moderate claims but **systematically underpredicts Extreme claims** (mean error −$3,237 for claims above the high-severity threshold)
-- 5-fold CV standard deviation of $7.95 confirms the model is stable and not overfitting
+- **cat80** is the single most predictive feature by a significant margin — SHAP analysis shows it cleanly partitions claims into one lower-risk group and three higher-risk groups
+- **cont14** exhibits a highly nonlinear relationship with loss, with sharp jumps at approximately 0.25 and 0.82 — this pattern is invisible to linear regression but captured precisely by gradient boosting splits, which explains most of the performance gap between Ridge and LightGBM
+- The model performs well on Low and Moderate claims but **systematically underpredicts Extreme claims** (mean error −$3,237 on claims above the high-severity threshold), a known limitation of point-estimate regression on heavy-tailed distributions
+- Cross-validation standard deviation of $7.95 confirms the model is stable and the held-out validation result is not the product of a favorable split
 
 ---
 
@@ -119,7 +134,7 @@ High-severity threshold: **$6,401.74** (top 10% of training loss distribution)
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/allstate-severity-api.git
+git clone https://github.com/hernon33/allstate-severity-api.git
 cd allstate-severity-api
 ```
 
@@ -139,13 +154,17 @@ Download `train.csv` and `test.csv` from [Kaggle](https://www.kaggle.com/c/allst
 python train_model.py --data_dir ./data/raw --output_dir ./models
 ```
 
-This saves all four model artifacts to `./models/`.
+This trains both models, runs 5-fold cross-validation, logs all runs to MLflow, and saves all four artifacts to `./models/`.
 
 ### 5. Run the API locally
 
 ```bash
 python app.py
-# or with gunicorn:
+```
+
+Or with Gunicorn:
+
+```bash
 gunicorn --bind 0.0.0.0:5000 app:app
 ```
 
@@ -160,30 +179,39 @@ docker run -p 8080:8080 allstate-api
 
 ## Deploying to Render
 
-1. Push this repository to GitHub (include the `models/` directory)
-2. Log in to [render.com](https://render.com) → **New Web Service**
-3. Connect your GitHub repository
-4. Render will detect `render.yaml` automatically
-5. Click **Deploy** — the `/health` endpoint confirms a successful deployment
+The repository includes a `render.yaml` that configures the deployment automatically.
+
+1. Push this repository to GitHub (the `models/` directory must be included)
+2. Log into [render.com](https://render.com) → New Web Service → Connect repository
+3. Render detects `render.yaml` and configures the build automatically
+4. Render polls `/health` every 30 seconds — a 200 response confirms a successful deployment
+5. Every push to `main` triggers an automatic redeploy
+
+---
+
+## Technical Architecture
+
+The API loads all four model artifacts once at startup. Incoming requests are processed through a consistent encoding pipeline that mirrors training exactly — categorical features are encoded using the same fitted `LabelEncoder` objects from training (stored in `label_encoders.joblib`), and the feature matrix is aligned to the full 130-column training schema before inference regardless of how many fields the caller provides. Unknown categories fall back to index 0. Missing continuous features default to 0.0. Out-of-range continuous values are flagged in the `warnings` field without blocking the prediction.
 
 ---
 
 ## Limitations
 
-- The dataset is fully anonymized — feature names like `cat80` and `cont14` have no real-world label, limiting business interpretability
-- The model systematically underpredicts extreme claims (the most financially important segment)
-- Recall on high-severity claims is 0.47 — roughly half of truly extreme claims are not flagged by the classifier
-- No time-based features are available, so claim lifecycle dynamics cannot be modeled
-- Fairness cannot be fully assessed because protected attributes are not available in the anonymized dataset
+- The dataset is fully anonymized — feature names like `cat80` and `cont14` carry no real-world label, which limits the business interpretability of SHAP explanations
+- The model systematically underpredicts extreme claims, which are the most financially consequential segment for reserve planning
+- Recall on high-severity claims is 0.47 at the default 0.5 threshold — lowering the threshold improves recall but increases false positives, a tradeoff that should be calibrated to operational capacity
+- No time-based features are available, so claim development over time cannot be modeled
+- Bias auditing is not possible without de-anonymization — categorical features may encode proxies for protected characteristics
 
 ---
 
 ## Ethical Considerations
 
-- **Potential harms**: The system could be used to deprioritize review of low-scored claims even when claimant need is high
-- **Bias**: Anonymized categorical features may encode proxies for protected characteristics; bias auditing is recommended before production use
-- **Privacy**: The Kaggle dataset contains no PII; no claimant data is stored or transmitted
-- **Transparency**: SHAP values provide per-prediction explanations; affected parties should have access to explanations for automated decisions
+- **Potential harms:** The system could be used to deprioritize claims based on predicted cost rather than actual need. The documented underprediction on extreme claims means the highest-need claimants may be systematically underserved by a triage system that relies on these predictions
+- **Bias:** Anonymized features may encode geographic region, claim type, or other attributes that correlate with protected characteristics. A full disparate impact analysis would be required before any production deployment
+- **Privacy:** The Kaggle dataset contains no PII. The deployed API does not log or store any submitted claim data
+- **Misuse:** A model with AUC 0.93 is powerful enough to meaningfully alter claim handling workflows. It should be positioned as a prioritization support tool, not a decision-making system, with human oversight at the decision layer
+- **Transparency:** SHAP values provide per-prediction feature attributions, but without feature de-anonymization these cannot be explained to affected claimants in meaningful terms
 
 ---
 
@@ -194,6 +222,6 @@ docker run -p 8080:8080 allstate-api
 - `scikit-learn==1.4.2`
 - `flask==3.0.3`
 - `gunicorn==22.0.0`
-- `numpy`, `pandas`, `joblib`
+- `numpy`, `pandas`, `joblib`, `shap`, `mlflow`
 
 See `requirements.txt` for pinned versions.
