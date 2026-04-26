@@ -1,0 +1,5 @@
+run_name,model_type,n_estimators,max_depth,target_transform,encoding,metric_val_mae,metric_val_rmse,metric_val_r2,alpha,learning_rate,severity_threshold,threshold_percentile,classification_threshold,threshold_method,metric_val_auc_roc,metric_high_sev_precision,metric_high_sev_recall,metric_high_sev_f1,metric_overall_accuracy,num_leaves,subsample,colsample_bytree,train_rows,valid_rows,metric_cv_mean_mae,metric_cv_std_mae,metric_cv_mean_r2,metric_high_sev_mean_error,metric_high_sev_mean_abs_error
+random_forest,RandomForestRegressor,150,12,log1p,one_hot_encoding,1223.44,2055.23,0.4823,,,,,,,,,,,,,,,,,,,,,
+ridge_baseline,Ridge,,,log1p,one_hot_encoding,1244.68,2185.06,0.4149,1.0,,,,,,,,,,,,,,,,,,,,
+lgbm_classifier,LGBMClassifier,500,6,,,,,,,0.05,6401.74,0.9,0.0746,Youden's J,0.931451511449158,0.35762584522915103,0.8847583643122676,0.5093632958801498,0.83,,,,,,,,,,
+lgbm_regressor,LGBMRegressor,1000,6,log1p,label_encoding,1135.1627082207074,1895.8329708978283,0.5595148348210826,,0.05,,,,,,,,,,63,0.8,0.8,150654,37664,1145.91,7.95,0.5519,-3237.02,3671.99
