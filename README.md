@@ -156,6 +156,10 @@ High-severity threshold: **$6,401.74** (90th percentile of training loss distrib
 
 ---
 
+## Experiment Tracking
+
+Model experiments were tracked using MLflow. A summary of all runs, including model types, hyperparameters, and evaluation metrics, is available in `mlflow_run_summary.csv`.
+
 ## Key Findings
 
 - **cat80** is the single most predictive feature by a significant margin — SHAP analysis shows it cleanly partitions claims into one lower-risk group and three higher-risk groups
