@@ -74,6 +74,17 @@ allstate-severity-api/
 │   ├── lgbm_classifier.joblib
 │   ├── label_encoders.joblib
 │   └── metadata.joblib
+├── figures/
+│   ├── shap_summary_dot.png
+│   ├── shap_summary_bar.png
+│   ├── shap_dependence_cat80.png
+│   ├── shap_dependence_cont14.png
+│   ├── shap_dependence_cat101.png
+│   ├── model_comparison.png
+│   ├── roc_curve.png
+│   ├── severity_tier_counts.png
+│   ├── severity_tier_analysis.png
+│   └── error_analysis.png
 ├── app.py
 ├── train_model.py
 ├── claims_dashboard.html
@@ -127,6 +138,32 @@ High-severity threshold: **$6,401.74** (90th percentile of training loss distrib
 - **cont14** exhibits a highly nonlinear relationship with loss, with sharp jumps at approximately 0.25 and 0.82 — this pattern is invisible to linear regression but captured precisely by gradient boosting splits, which explains most of the performance gap between Ridge and LightGBM
 - The model performs well on Low and Moderate claims but **systematically underpredicts Extreme claims** (mean error −$3,237 on claims above the high-severity threshold), a known limitation of point-estimate regression on heavy-tailed distributions
 - Cross-validation standard deviation of $7.95 confirms the model is stable and the held-out validation result is not the product of a favorable split
+
+---
+
+## Visualizations
+
+### SHAP Feature Importance
+![SHAP Summary Bar](figures/shap_summary_bar.png)
+![SHAP Summary Dot](figures/shap_summary_dot.png)
+
+### Top Feature Dependence Plots
+![SHAP Dependence cat80](figures/shap_dependence_cat80.png)
+![SHAP Dependence cont14](figures/shap_dependence_cont14.png)
+![SHAP Dependence cat101](figures/shap_dependence_cat101.png)
+
+### Model Comparison
+![Model Comparison](figures/model_comparison.png)
+
+### Classifier Performance
+![ROC Curve](figures/roc_curve.png)
+
+### Severity Tier Analysis
+![Severity Tier Counts](figures/severity_tier_counts.png)
+![Severity Tier Analysis](figures/severity_tier_analysis.png)
+
+### Error Analysis
+![Error Analysis](figures/error_analysis.png)
 
 ---
 
