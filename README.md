@@ -6,6 +6,30 @@ A production-grade machine learning system that predicts the financial severity 
 
 ---
 
+## Final Project Requirements Checklist
+
+This repository is structured to satisfy all DATA 6545 Final Project technical requirements.
+
+| Requirement | Where Completed |
+|---|---|
+| New dataset/problem | Allstate Claims Severity Kaggle dataset |
+| Supervised learning problem | Regression (loss prediction) + classification (high-severity flag) |
+| 5,000+ rows | 188,318 training rows |
+| 10+ features | 130 engineered features |
+| Clear business problem | Insurance claim severity prediction for triage and reserving |
+| Defined target variable | `loss` |
+| Evaluation metrics | MAE, RMSE, R² (regression); AUC-ROC, precision, recall, F1 (classification) |
+| Baseline model | Ridge Regression |
+| Model comparison | Ridge, Random Forest, LightGBM |
+| Trained model artifacts | `/models` directory |
+| Technical artifact | Flask API, Docker deployment, dashboard |
+| Experiment tracking | `mlflow_run_summary.csv` |
+| Reproducibility | `train_model.py`, `requirements.txt`, setup instructions |
+| Ethical considerations | Documented in README |
+
+The goal of this repository is to provide a fully reproducible machine learning pipeline and deployable prediction system.
+---
+
 ## Live API
 
 > **Base URL:** `https://allstate-severity-api.onrender.com`
