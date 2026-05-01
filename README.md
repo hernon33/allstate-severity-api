@@ -22,12 +22,13 @@ This repository is structured to satisfy all DATA 6545 Final Project technical r
 | Baseline model | Ridge Regression |
 | Model comparison | Ridge, Random Forest, LightGBM |
 | Trained model artifacts | `/models` directory |
-| Technical artifact | Flask API, Docker deployment, dashboard |
+| Technical artifact | Flask API, Docker deployment, Streamlit dashboard |
 | Experiment tracking | `mlflow_run_summary.csv` |
 | Reproducibility | `train_model.py`, `requirements.txt`, setup instructions |
 | Ethical considerations | Documented in README |
 
 The goal of this repository is to provide a fully reproducible machine learning pipeline and deployable prediction system.
+
 ---
 
 ## Live API
@@ -111,12 +112,13 @@ allstate-severity-api/
 │   └── error_analysis.png
 ├── app.py
 ├── train_model.py
-├── claims_dashboard.html
 ├── mlflow_run_summary.csv
 ├── requirements.txt
 ├── Dockerfile
 └── render.yaml
 ```
+
+> **Claims Dashboard:** A companion Streamlit app visualizing all 125,546 test predictions is maintained at [github.com/hernon33/allstate-claims-dashboard](https://github.com/hernon33/allstate-claims-dashboard).
 
 ---
 
